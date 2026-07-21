@@ -370,14 +370,25 @@
         <!-- Cronômetro de Jogo -->
         <div class="timer-container">
             <div>⏱️ TEMPO DE JOGO</div>
-            <div class="timer-display" id="timer-display">30:00</div>
-            <div class="timer-controls">
+            <div class="timer-display" id="timer-display">15:00</div>
+
+            <div class="timer-controls"
+                style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <button onclick="startTimer()">▶️ Iniciar</button>
                 <button onclick="pauseTimer()">⏸️ Pausar</button>
-                <button onclick="resetTimer(30)">🔄 30 Min</button>
-                <button onclick="resetTimer(40)">🔄 40 Min</button>
+
+                <!-- CAMPO PARA VOCÊ DIGITAR O TEMPO DESEJADO -->
+                <div
+                    style="display: inline-flex; align-items: center; background: #262626; border: 1px solid #3d3d3d; border-radius: 6px; padding: 2px 6px;">
+                    <input type="number" id="inputTempoPersonalizado" value="15" min="1" max="120"
+                        style="width: 45px; background: transparent; border: none; color: #fff; font-weight: bold; text-align: center; outline: none; font-size: 14px;">
+                    <span style="font-size: 12px; color: #aaa; margin-right: 4px;">min</span>
+                    <button onclick="definirTempoDigitado()"
+                        style="padding: 4px 8px; font-size: 12px; background-color: #2ecc71; border: none; border-radius: 4px; color: white; cursor: pointer;">Definir</button>
+                </div>
+
+                <!-- BOTÃO ÚNICO DE +1 MIN EXTRA -->
                 <button onclick="addExtraTime(1)">+1 Min Extra</button>
-                <button onclick="addExtraTime(2)">+2 Min Extra</button>
             </div>
         </div>
 
@@ -905,6 +916,67 @@
                     .then((reg) => console.log('Service Worker registrado com sucesso!', reg.scope))
                     .catch((err) => console.error('Erro ao registrar o Service Worker:', err));
             });
+        }
+
+        // --- CONTROLE DO CRONÔMETRO PERSONALIZADO ---
+        let tempoRestante = 15 * 60; // Duração padrão inicial (15 minutos em segundos)
+        let timerInterval = null;
+
+        function atualizarDisplay() {
+            const minutos = Math.floor(tempoRestante / 60);
+            const segundos = tempoRestante % 60;
+
+            // Procura o ID do display no seu HTML (timer-display ou cronometro)
+            const displayElement = document.getElementById('timer-display') || document.getElementById('cronometro');
+            if (displayElement) {
+                displayElement.textContent =
+                    `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+            }
+        }
+
+        function definirTempoDigitado() {
+            const inputElement = document.getElementById('inputTempoPersonalizado') || document.getElementById('tempoPersonalizado');
+            if (inputElement) {
+                const minutosInput = parseInt(inputElement.value);
+                if (minutosInput && minutosInput > 0) {
+                    pauseTimer();
+                    tempoRestante = minutosInput * 60;
+                    atualizarDisplay();
+                }
+            }
+        }
+
+        function addExtraTime(minutos) {
+            tempoRestante += minutos * 60;
+            atualizarDisplay();
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                if (tempoRestante > 0) {
+                    tempoRestante--;
+                    atualizarDisplay();
+                } else {
+                    pauseTimer();
+                    alert("⏰ Fim de jogo / tempo esgotado!");
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetTimer(minutos) {
+            pauseTimer();
+            if (minutos) {
+                tempoRestante = minutos * 60;
+            } else {
+                definirTempoDigitado();
+            }
+            atualizarDisplay();
         }
 
     </script>
