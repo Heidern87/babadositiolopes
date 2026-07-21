@@ -397,8 +397,8 @@
             <label for="baba-data"><strong>Data do Baba:</strong></label>
             <input type="date" id="baba-data" onchange="carregarPresencasBaba()">
             <input type="text" id="baba-descricao" placeholder="Ex: Sábado ou Feriado 07/09" style="flex: 1;">
-            <!-- BOTÃO NOVO AQUI ABAIXO -->
-            <button type="button"
+            <!-- BOTÃO COM A ID ADICIONADA -->
+            <button type="button" id="btn-zerar-dia"
                 style="background:#d32f2f; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-weight:bold;"
                 onclick="limparBabaDoDia()">🗑️ Zerar Times do Dia</button>
         </div>
@@ -554,6 +554,14 @@
             if (!dataInput) return;
             const data = dataInput.value;
             if (!appData.babas[data]) appData.babas[data] = [];
+
+            // Atualiza o texto do botão com a data selecionada (formato DD/MM/AAAA)
+            const btnZerar = document.getElementById('btn-zerar-dia');
+            if (btnZerar && data) {
+                const partes = data.split('-');
+                const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                btnZerar.innerText = `🗑️ Zerar Times do Dia (${dataFormatada})`;
+            }
 
             renderizarCardsTimes(data);
         }
@@ -870,8 +878,14 @@
         }
 
         function limparBabaDoDia() {
-            const data = document.getElementById('baba-data').value;
-            if (confirm('Tem certeza que deseja zerar a escalação desta data? Todos os jogadores voltarão para a lista de seleção.')) {
+            const dataInput = document.getElementById('baba-data');
+            if (!dataInput || !dataInput.value) return;
+
+            const data = dataInput.value;
+            const partes = data.split('-');
+            const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+            if (confirm(`Tem certeza que deseja zerar a escalação do dia ${dataFormatada}?\n\nIsso apagará apenas os times deste dia e manterá o histórico dos outros dias salvo!`)) {
                 appData.babas[data] = [];
                 salvarDadosLocal();
                 carregarPresencasBaba();
