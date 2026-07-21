@@ -398,9 +398,9 @@
             <input type="date" id="baba-data" onchange="carregarPresencasBaba()">
             <input type="text" id="baba-descricao" placeholder="Ex: Sábado ou Feriado 07/09" style="flex: 1;">
             <!-- BOTÃO COM A ID ADICIONADA -->
-            <button type="button" id="btn-zerar-dia"
+            <button type="button"
                 style="background:#d32f2f; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-weight:bold;"
-                onclick="limparBabaDoDia()">🗑️ Zerar Times do Dia</button>
+                onclick="apagarJogoComCalendario()">🗑️ Apagar Jogo</button>
         </div>
 
         <!-- Form de adição de jogadores (Filtra quem já foi escolhido) -->
@@ -1026,6 +1026,48 @@
                 event.returnValue = ''; // Exibe o alerta padrão de confirmação do navegador
             }
         });
+
+        function apagarJogoComCalendario() {
+            // Cria um seletor de data invisível na hora do clique
+            const datePicker = document.createElement('input');
+            datePicker.type = 'date';
+            datePicker.value = document.getElementById('baba-data').value; // Sugere a data atual
+
+            // Quando você escolher a data no calendário e confirmar:
+            datePicker.onchange = () => {
+                const dataEscolhida = datePicker.value;
+                if (!dataEscolhida) return;
+
+                const partes = dataEscolhida.split('-');
+                const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+                // Verifica se há registros nessa data
+                if (!appData.babas[dataEscolhida] || appData.babas[dataEscolhida].length === 0) {
+                    alert(`Não existe nenhum jogo registrado na data ${dataFormatada}.`);
+                    return;
+                }
+
+                // Pergunta de segurança
+                if (confirm(`Tem certeza que deseja apagar permanentemente o jogo do dia ${dataFormatada}?`)) {
+                    delete appData.babas[dataEscolhida];
+                    salvarDadosLocal();
+
+                    // Se for o dia que está na tela, atualiza os times
+                    if (dataEscolhida === document.getElementById('baba-data').value) {
+                        carregarPresencasBaba();
+                    }
+
+                    alert(`Jogo do dia ${dataFormatada} apagado com sucesso!`);
+                }
+            };
+
+            // Abre o calendário do celular/navegador automaticamente
+            if ('showPicker' in HTMLInputElement.prototype) {
+                datePicker.showPicker();
+            } else {
+                datePicker.click();
+            }
+        }
     </script>
 </body>
 
