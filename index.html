@@ -33,6 +33,7 @@
             background-color: var(--bg);
             color: var(--text);
             padding: 15px;
+            overscroll-behavior-y: contain;
         }
 
         header {
@@ -920,10 +921,50 @@
             atualizarDisplay();
         }
 
+        // --- EFEITOS SONOROS E VIBRAÇÃO DE FIM DE JOGO ---
+        function tocarApitoFinal() {
+            // 1. Tenta fazer o celular vibrar (3 pulsos de vibração)
+            if ("vibrate" in navigator) {
+                navigator.vibrate([400, 200, 400, 200, 800]); // Vibrar, pausar, vibrar...
+            }
+
+            // 2. Cria o som do apito de juiz usando a Web Audio API do navegador
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Função interna para emitir 1 apito com frequência aguda (tipo apito de metal)
+                function apitar(tempoInicio, duracao) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(3000, tempoInicio); // Frequência aguda de 3000Hz (som de apito)
+
+                    // Suaviza o início e fim do som
+                    gain.gain.setValueAtTime(0, tempoInicio);
+                    gain.gain.linearRampToValueAtTime(0.3, tempoInicio + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, tempoInicio + duracao);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(tempoInicio);
+                    osc.stop(tempoInicio + duracao);
+                }
+
+                const agora = audioCtx.currentTime;
+                // Três apitos do juiz (Pi, Pi, Piii!)
+                apitar(agora, 0.2);        // Primeiro apito curto
+                apitar(agora + 0.35, 0.2);   // Segundo apito curto
+                apitar(agora + 0.7, 0.8);    // Terceiro apito longo
+            } catch (e) {
+                console.log("Áudio não suportado ou bloqueado pelo navegador.");
+            }
+        }
+
         function startTimer() {
             if (timerInterval) return;
 
-            // Define o momento exato em que o cronômetro deve chegar a zero
             endTime = Date.now() + (tempoRestante * 1000);
 
             timerInterval = setInterval(() => {
@@ -934,7 +975,15 @@
                     tempoRestante = 0;
                     atualizarDisplay();
                     pauseTimer();
-                    alert("⏰ Fim de jogo / tempo esgotado!");
+
+                    // 🚨 TOCAR APITO E VIBRAR O CELULAR AQUI 🚨
+                    tocarApitoFinal();
+
+                    // Pequeno atraso no alert para o som tocar legal antes da caixa suspensa pausar a página
+                    setTimeout(() => {
+                        alert("⏰ Fim de jogo / tempo esgotado!");
+                    }, 100);
+
                 } else {
                     atualizarDisplay();
                 }
@@ -956,6 +1005,13 @@
             atualizarDisplay();
         }
 
+        // Impede a atualização ou fechamento acidental enquanto o jogo estiver rolando
+        window.addEventListener('beforeunload', (event) => {
+            if (timerInterval) { // Se o cronômetro estiver ativo
+                event.preventDefault();
+                event.returnValue = ''; // Exibe o alerta padrão de confirmação do navegador
+            }
+        });
     </script>
 </body>
 
