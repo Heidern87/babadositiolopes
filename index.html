@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão do Baba - FutApp</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="baba_do_sitio_lopes.png">
     <link rel="apple-touch-icon" href="baba_do_sitio_lopes.png">
     <style>
@@ -438,17 +439,6 @@
             <tbody></tbody>
         </table>
     </section>
-
-    <!-- SINCRONIZAÇÃO GITHUB -->
-    <div class="data-box">
-        <h3>📂 Sincronização com GitHub (JSON)</h3>
-        <p>Baixe ou importe o arquivo de dados para manter seu repositório atualizado.</p>
-        <div style="margin-top: 8px; display: flex; gap: 10px;">
-            <button onclick="exportarJSON()">📥 Exportar Dados (JSON)</button>
-            <button onclick="document.getElementById('file-input').click()">📤 Importar JSON</button>
-            <input type="file" id="file-input" style="display:none" onchange="importarJSON(event)">
-        </div>
-    </div>
 
     <script>
         // ESTADO GLOBAL
@@ -908,6 +898,15 @@
                 carregarPresencasBaba();
             }
         }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('Service Worker registrado com sucesso!', reg.scope))
+                    .catch((err) => console.error('Erro ao registrar o Service Worker:', err));
+            });
+        }
+
     </script>
 </body>
 
