@@ -394,7 +394,7 @@
 
         <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <label for="baba-data"><strong>Data do Baba:</strong></label>
-            <input type="date" id="baba-data" value="2026-07-25" onchange="carregarPresencasBaba()">
+            <input type="date" id="baba-data" onchange="carregarPresencasBaba()">
             <input type="text" id="baba-descricao" placeholder="Ex: Sábado ou Feriado 07/09" style="flex: 1;">
             <!-- BOTÃO NOVO AQUI ABAIXO -->
             <button type="button"
@@ -466,6 +466,13 @@
         let mesSelecionado = "Jul";
 
         window.onload = () => {
+            // PREENCHER DATA ATUAL SE ESTIVER VAZIA
+            const inputData = document.getElementById('baba-data');
+            if (inputData && !inputData.value) {
+                const hoje = new Date().toISOString().split('T')[0];
+                inputData.value = hoje;
+            }
+
             carregarDadosLocal();
             renderizarMeses();
             atualizarDatalist();
@@ -878,19 +885,18 @@
             });
         }
 
-        // --- CONTROLE DO CRONÔMETRO PERSONALIZADO ---
-        let tempoRestante = 15 * 60; // Duração padrão inicial (15 minutos em segundos)
+        // --- CONTROLE DO CRONÔMETRO COM SUPORTE A TELA APAGADA ---
+        let tempoRestante = 15 * 60; // Em segundos
+        let endTime = null;
         let timerInterval = null;
 
         function atualizarDisplay() {
-            const minutos = Math.floor(tempoRestante / 60);
-            const segundos = tempoRestante % 60;
+            const minutos = Math.floor(Math.max(0, tempoRestante) / 60);
+            const segundos = Math.floor(Math.max(0, tempoRestante) % 60);
 
-            // Procura o ID do display no seu HTML (timer-display ou cronometro)
             const displayElement = document.getElementById('timer-display') || document.getElementById('cronometro');
             if (displayElement) {
-                displayElement.textContent =
-                    `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+                displayElement.textContent = `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
             }
         }
 
@@ -908,18 +914,29 @@
 
         function addExtraTime(minutos) {
             tempoRestante += minutos * 60;
+            if (timerInterval) {
+                endTime += minutos * 60 * 1000;
+            }
             atualizarDisplay();
         }
 
         function startTimer() {
             if (timerInterval) return;
+
+            // Define o momento exato em que o cronômetro deve chegar a zero
+            endTime = Date.now() + (tempoRestante * 1000);
+
             timerInterval = setInterval(() => {
-                if (tempoRestante > 0) {
-                    tempoRestante--;
+                const agora = Date.now();
+                tempoRestante = Math.round((endTime - agora) / 1000);
+
+                if (tempoRestante <= 0) {
+                    tempoRestante = 0;
                     atualizarDisplay();
-                } else {
                     pauseTimer();
                     alert("⏰ Fim de jogo / tempo esgotado!");
+                } else {
+                    atualizarDisplay();
                 }
             }, 1000);
         }
