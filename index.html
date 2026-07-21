@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão do Baba - FutApp</title>
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --primary-dark: #1b5e20;
+            --bg: #f4f6f8;
+            --card: #ffffff;
+            --text: #333333;
+            --border: #dddddd;
+            --yellow-team: #fff9c4;
+            --yellow-border: #fbc02d;
+            --black-team: #424242;
+            --black-text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 15px;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        nav button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: #e0e0e0;
+            color: #333;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        nav button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            font-size: 1.2rem;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            align-items: center;
+        }
+
+        input,
+        select,
+        button {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        button.btn-add {
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+
+        button.btn-add:hover {
+            background: var(--primary-dark);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        /* LAYOUT DE TIMES (2 CARDS POR LINHA) */
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            /* Força exatamente 2 colunas lado a lado */
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* Ajuste nos botões internos para não vazarem */
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .team-card.preto .player-item {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        /* Se a tela for de celular (muito estreita), fica 1 por linha */
+        @media (max-width: 768px) {
+            .teams-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .team-card {
+            border-radius: 8px;
+            padding: 15px;
+            background: #fff;
+            border: 2px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .team-card.amarelo {
+            background: var(--yellow-team);
+            border-color: var(--yellow-border);
+            color: #333;
+        }
+
+        .team-card.preto {
+            background: var(--black-team);
+            color: var(--black-text);
+            border-color: #212121;
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 5px;
+        }
+
+        .team-card.preto .team-header {
+            border-bottom-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .team-card.preto .player-item {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .card-btn {
+            border: none;
+            padding: 3px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .btn-card-yellow {
+            background: #fbc02d;
+            color: #000;
+        }
+
+        .btn-card-red {
+            background: #e53935;
+            color: #fff;
+        }
+
+        .btn-card-blue {
+            background: #1e88e5;
+            color: #fff;
+        }
+
+        /* CRONÔMETRO */
+        .timer-container {
+            background: #1b1b1b;
+            color: #00ff66;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-family: monospace;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .timer-controls button {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            cursor: pointer;
+        }
+
+        .months-filter {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .months-filter button {
+            padding: 6px 12px;
+            border: 1px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 15px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .months-filter button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .paid {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .pending {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .data-box {
+            margin-top: 20px;
+            background: #eee;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>⚽ Sistema de Gestão do Baba</h1>
+    </header>
+
+    <nav>
+        <button class="nav-btn active" onclick="switchTab('agenda')">📋 Agenda / Jogadores</button>
+        <button class="nav-btn" onclick="switchTab('baba')">📅 Babas por Data</button>
+        <button class="nav-btn" onclick="switchTab('mensalidades')">💰 Mensalidades</button>
+    </nav>
+
+    <!-- TAB 1: AGENDA -->
+    <section id="agenda" class="tab-content active">
+        <h2>Agenda do Elenco</h2>
+        <form id="form-jogador">
+            <input type="text" id="agenda-nome" placeholder="Nome Completo" required>
+            <input type="tel" id="agenda-telefone" placeholder="Telefone / WhatsApp">
+            <select id="agenda-posicao">
+                <option value="Linha">Jogador de Linha</option>
+                <option value="Goleiro">Goleiro</option>
+            </select>
+            <button type="submit" class="btn-add">Cadastrar Jogador</button>
+        </form>
+
+        <table id="tabela-agenda">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>Posição</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <!-- TAB 2: BABAS POR DATA & TIMES -->
+    <section id="baba" class="tab-content">
+        <h2>Escalação e Controle da Partida</h2>
+
+        <!-- Cronômetro de Jogo -->
+        <div class="timer-container">
+            <div>⏱️ TEMPO DE JOGO</div>
+            <div class="timer-display" id="timer-display">30:00</div>
+            <div class="timer-controls">
+                <button onclick="startTimer()">▶️ Iniciar</button>
+                <button onclick="pauseTimer()">⏸️ Pausar</button>
+                <button onclick="resetTimer(30)">🔄 30 Min</button>
+                <button onclick="resetTimer(40)">🔄 40 Min</button>
+                <button onclick="addExtraTime(1)">+1 Min Extra</button>
+                <button onclick="addExtraTime(2)">+2 Min Extra</button>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <label for="baba-data"><strong>Data do Baba:</strong></label>
+            <input type="date" id="baba-data" value="2026-07-25" onchange="carregarPresencasBaba()">
+            <input type="text" id="baba-descricao" placeholder="Ex: Sábado ou Feriado 07/09" style="flex: 1;">
+            <!-- BOTÃO NOVO AQUI ABAIXO -->
+            <button type="button"
+                style="background:#d32f2f; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; font-weight:bold;"
+                onclick="limparBabaDoDia()">🗑️ Zerar Times do Dia</button>
+        </div>
+
+        <!-- Form de adição de jogadores (Filtra quem já foi escolhido) -->
+        <!-- NOVO CRIADOR DE TIMES -->
+        <div
+            style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="novo-nome-time" placeholder="Nome do novo time (ex: Vermelho, Time A)..."
+                style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 200px;">
+            <button type="button" onclick="criarNovoTime()"
+                style="background: #2e7d32; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">➕
+                Criar Time</button>
+        </div>
+
+        <!-- Cards Lado a Lado dos Times -->
+        <div class="teams-grid" id="teams-container">
+            <!-- Gerado via JavaScript -->
+        </div>
+    </section>
+
+    <!-- TAB 3: MENSALIDADES -->
+    <section id="mensalidades" class="tab-content">
+        <h2>Controle de Mensalidades</h2>
+
+        <div class="months-filter" id="filtro-meses"></div>
+
+        <form id="form-mensalidade">
+            <input type="text" id="mensal-buscar-jogador" list="dl-jogadores" placeholder="Buscar Jogador da Agenda..."
+                required>
+            <datalist id="dl-jogadores"></datalist>
+            <input type="number" id="mensal-valor" placeholder="Valor (R$)" value="10.00" step="0.01">
+            <select id="mensal-status">
+                <option value="Pago">Pago</option>
+                <option value="Pendente">Pendente</option>
+            </select>
+            <button type="submit" class="btn-add">Registrar Pagamento</button>
+        </form>
+
+        <table id="tabela-mensalidades">
+            <thead>
+                <tr>
+                    <th>Jogador</th>
+                    <th>Mês Referência</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <!-- SINCRONIZAÇÃO GITHUB -->
+    <div class="data-box">
+        <h3>📂 Sincronização com GitHub (JSON)</h3>
+        <p>Baixe ou importe o arquivo de dados para manter seu repositório atualizado.</p>
+        <div style="margin-top: 8px; display: flex; gap: 10px;">
+            <button onclick="exportarJSON()">📥 Exportar Dados (JSON)</button>
+            <button onclick="document.getElementById('file-input').click()">📤 Importar JSON</button>
+            <input type="file" id="file-input" style="display:none" onchange="importarJSON(event)">
+        </div>
+    </div>
+
+    <script>
+        // ESTADO GLOBAL
+        let appData = {
+            jogadores: [],
+            babas: {},
+            mensalidades: []
+        };
+
+        // Times definidos dinamicamente (começa vazio)
+        let timesDefinidos = [];
+
+        const meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+        let mesSelecionado = "Jul";
+
+        // CRONÔMETRO
+        let timerInterval = null;
+        let secondsLeft = 1800; // 30 min padrão
+
+        window.onload = () => {
+            carregarDadosLocal();
+            renderizarMeses();
+            atualizarDatalist();
+            renderizarAgenda();
+            carregarPresencasBaba();
+            renderizarMensalidades();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+
+        // --- AGENDA ---
+        document.getElementById('form-jogador').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('agenda-nome').value.trim();
+            const telefone = document.getElementById('agenda-telefone').value.trim();
+            const posicao = document.getElementById('agenda-posicao').value;
+
+            if (appData.jogadores.some(j => j.nome.toLowerCase() === nome.toLowerCase())) {
+                alert('Jogador já cadastrado!');
+                return;
+            }
+
+            appData.jogadores.push({ id: Date.now(), nome, telefone, posicao });
+
+            // ORDENA A LISTA DE JOGADORES EM ORDEM ALFABÉTICA (A-Z)
+            appData.jogadores.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+            salvarDadosLocal();
+            renderizarAgenda();
+            atualizarDatalist();
+            carregarPresencasBaba();
+            e.target.reset();
+        });
+
+        function renderizarAgenda() {
+            // Garante a ordenação de A-Z antes de desenhar a tabela
+            appData.jogadores.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+            const tbody = document.querySelector('#tabela-agenda tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = appData.jogadores.map(j => `
+              <tr>
+                <td><strong>${j.nome}</strong></td>
+                <td>${j.telefone || '-'}</td>
+                <td>${j.posicao}</td>
+                <td><button style="background:#d32f2f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="removerJogador(${j.id})">Excluir</button></td>
+              </tr>
+            `).join('');
+        }
+
+        function removerJogador(id) {
+            appData.jogadores = appData.jogadores.filter(j => j.id !== id);
+            salvarDadosLocal();
+            renderizarAgenda();
+            atualizarDatalist();
+            carregarPresencasBaba();
+        }
+
+        function atualizarDatalist() {
+            const datalist = document.getElementById('dl-jogadores');
+            if (datalist) {
+                datalist.innerHTML = appData.jogadores.map(j => `<option value="${j.nome}">`).join('');
+            }
+        }
+
+        // --- BABAS & MONTAGEM DE TIMES ---
+        function carregarPresencasBaba() {
+            const dataInput = document.getElementById('baba-data');
+            if (!dataInput) return;
+            const data = dataInput.value;
+            if (!appData.babas[data]) appData.babas[data] = [];
+
+            renderizarCardsTimes(data);
+        }
+
+        // Criar novo time por nome
+        function criarNovoTime() {
+            const input = document.getElementById('novo-nome-time');
+            if (!input) return;
+            const nomeTime = input.value.trim();
+
+            if (!nomeTime) {
+                alert('Digite o nome do time!');
+                return;
+            }
+
+            if (timesDefinidos.some(t => t.toLowerCase() === nomeTime.toLowerCase())) {
+                alert('Já existe um time com esse nome!');
+                return;
+            }
+
+            timesDefinidos.push(nomeTime);
+            input.value = '';
+            salvarDadosLocal();
+            carregarPresencasBaba();
+        }
+
+        // Apagar um time e remover o card
+        function excluirTimeCard(timeNome) {
+            const dataInput = document.getElementById('baba-data');
+            const data = dataInput ? dataInput.value : null;
+
+            if (data && appData.babas[data]) {
+                appData.babas[data] = appData.babas[data].filter(p => p.time.toLowerCase() !== timeNome.toLowerCase());
+            }
+
+            timesDefinidos = timesDefinidos.filter(t => t.toLowerCase() !== timeNome.toLowerCase());
+            salvarDadosLocal();
+            carregarPresencasBaba();
+        }
+
+        // 2. Adicionar jogador direto no card do time
+        function adicionarJogadorAoTime(timeNome, selectId) {
+            const data = document.getElementById('baba-data').value;
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            const nomeJogador = select.value;
+
+            if (!nomeJogador) {
+                alert('Selecione um jogador da agenda!');
+                return;
+            }
+
+            const jogador = appData.jogadores.find(j => j.nome === nomeJogador);
+            if (!appData.babas[data]) appData.babas[data] = [];
+
+            appData.babas[data].push({
+                nome: jogador.nome,
+                posicao: jogador.posicao,
+                time: timeNome,
+                cartoes: { amarelo: 0, vermelho: false, azulTimer: 0 }
+            });
+
+            salvarDadosLocal();
+            carregarPresencasBaba();
+        }
+
+        // 3. Apagar o card de um time
+        function excluirTimeCard(timeNome) {
+            const data = document.getElementById('baba-data').value;
+
+            if (appData.babas[data]) {
+                appData.babas[data] = appData.babas[data].filter(p => p.time.toLowerCase() !== timeNome.toLowerCase());
+            }
+
+            timesDefinidos = timesDefinidos.filter(t => t.toLowerCase() !== timeNome.toLowerCase());
+            salvarDadosLocal();
+            carregarPresencasBaba();
+        }
+
+        // 4. Renderizar os Cards Dinamicamente
+        function renderizarCardsTimes(data) {
+            const container = document.getElementById('teams-container');
+            if (!container) return;
+
+            const escalados = appData.babas[data] || [];
+
+            // Mantém no painel os times que têm jogadores escalados
+            escalados.forEach(p => {
+                if (!timesDefinidos.some(t => t.toLowerCase() === p.time.toLowerCase())) {
+                    timesDefinidos.push(p.time);
+                }
+            });
+
+            // Se não houver time criado ainda
+            if (timesDefinidos.length === 0) {
+                container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 30px; background: #fff; border: 2px dashed #ccc; border-radius: 8px;">
+        <p style="font-size: 1.1rem; color: #666; margin: 0;">Nenhum time criado ainda. Digite o nome no campo acima e clique em <strong>"➕ Criar Time"</strong>!</p>
+      </div>
+    `;
+                return;
+            }
+
+            // Filtra jogadores ainda disponíveis na agenda
+            const nomesEscalados = escalados.map(p => p.nome.toLowerCase());
+            const jogadoresDisponiveis = appData.jogadores
+                .filter(j => !nomesEscalados.includes(j.nome.toLowerCase()))
+                .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+            container.innerHTML = timesDefinidos.map((timeNome, index) => {
+                const membros = escalados.filter(p => p.time.toLowerCase() === timeNome.toLowerCase());
+
+                // Define a cor de borda conforme o nome do time
+                const tLower = timeNome.toLowerCase();
+                let classeCor = '';
+                if (tLower.includes('amarelo')) classeCor = 'amarelo';
+                else if (tLower.includes('preto')) classeCor = 'preto';
+                else if (tLower.includes('vermelho')) classeCor = 'vermelho';
+
+                const selectId = `select-add-${index}`;
+
+                return `
+      <div class="team-card ${classeCor}">
+        <div class="team-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:8px; margin-bottom:10px;">
+          <div>
+            <h3 style="display:inline-block; margin:0;">${timeNome}</h3>
+            <span style="font-weight: bold; font-size: 1.1rem; margin-left: 5px;">(${membros.length})</span>
+          </div>
+          <button onclick="excluirTimeCard('${timeNome}')" title="Apagar este time" style="background:none; border:none; cursor:pointer; font-size:1.1rem; color:#d32f2f;">🗑️</button>
+        </div>
+
+        <div style="display:flex; gap:5px; margin-bottom: 12px;">
+          <select id="${selectId}" style="flex:1; padding:4px; font-size:0.85rem;">
+            <option value="">+ Selecionar jogador...</option>
+            ${jogadoresDisponiveis.map(j => `<option value="${j.nome}">${j.nome} (${j.posicao})</option>`).join('')}
+          </select>
+          <button onclick="adicionarJogadorAoTime('${timeNome}', '${selectId}')" style="background:#2e7d32; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.85rem; font-weight:bold;">Adicionar</button>
+        </div>
+
+        <div>
+          ${membros.length === 0 ? '<p style="font-size:0.85rem; opacity:0.7; padding: 10px 0; text-align:center;">Nenhum jogador neste time.</p>' : ''}
+          ${membros.map((p) => `
+            <div class="player-item">
+              <div>
+                <strong>${p.nome}</strong> <small>(${p.posicao})</small>
+                ${p.cartoes?.amarelo ? '🟨' : ''}
+                ${p.cartoes?.vermelho ? '🟥' : ''}
+                ${p.cartoes?.azulTimer > 0 ? `🟦<small>(${p.cartoes.azulTimer}s)</small>` : ''}
+              </div>
+              <div style="display:flex; gap:4px; align-items:center;">
+                <button class="card-btn" style="background:#fbc02d; border:none; padding:4px 6px; border-radius:3px; cursor:pointer;" title="Cartão Amarelo" onclick="aplicarCartao('${data}', '${p.nome}', 'amarelo')">🟨</button>
+                <button class="card-btn" style="background:#1e88e5; color:white; border:none; padding:4px 6px; border-radius:3px; cursor:pointer;" title="Cartão Azul" onclick="aplicarCartao('${data}', '${p.nome}', 'azul')">🟦</button>
+                <button class="card-btn" style="background:#e53935; color:white; border:none; padding:4px 6px; border-radius:3px; cursor:pointer;" title="Cartão Vermelho" onclick="aplicarCartao('${data}', '${p.nome}', 'vermelho')">🟥</button>
+                <select style="padding:2px; font-size:0.8rem;" onchange="moverJogadorTime('${data}', '${p.nome}', this.value)">
+                  <option value="">Mover...</option>
+                  ${timesDefinidos.map(t => `<option value="${t}" ${t.toLowerCase() === timeNome.toLowerCase() ? 'disabled' : ''}>${t}</option>`).join('')}
+                </select>
+                <button style="background:none; border:none; cursor:pointer; font-size:1rem;" title="Remover do Baba" onclick="removerJogadorBaba('${data}', '${p.nome}')">❌</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+            }).join('');
+        }
+
+        function moverJogadorTime(data, nome, novoTime) {
+            if (!novoTime) return;
+            const jogador = appData.babas[data].find(p => p.nome === nome);
+            if (jogador) {
+                jogador.time = novoTime;
+                salvarDadosLocal();
+                carregarPresencasBaba();
+            }
+        }
+
+        function removerJogadorBaba(data, nome) {
+            appData.babas[data] = appData.babas[data].filter(p => p.nome !== nome);
+            salvarDadosLocal();
+            carregarPresencasBaba();
+        }
+
+        function aplicarCartao(data, nome, tipo) {
+            const p = appData.babas[data].find(item => item.nome === nome);
+            if (!p) return;
+            if (!p.cartoes) p.cartoes = { amarelo: 0, vermelho: false, azulTimer: 0 };
+
+            if (tipo === 'amarelo') p.cartoes.amarelo += 1;
+            if (tipo === 'vermelho') p.cartoes.vermelho = true;
+            if (tipo === 'azul') {
+                p.cartoes.azulTimer = 120; // 2 minutos em segundos
+                iniciarTimerAzul(data, nome);
+            }
+
+            salvarDadosLocal();
+            carregarPresencasBaba();
+        }
+
+        function iniciarTimerAzul(data, nome) {
+            const interval = setInterval(() => {
+                const p = appData.babas[data]?.find(item => item.nome === nome);
+                if (p && p.cartoes.azulTimer > 0) {
+                    p.cartoes.azulTimer -= 1;
+                    renderizarCardsTimes(data);
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        // --- CRONÔMETRO DE PARTIDA ---
+        function updateTimerDisplay() {
+            const m = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+            const s = (secondsLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}: ${s}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                if (secondsLeft > 0) {
+                    secondsLeft--;
+                    updateTimerDisplay();
+                } else {
+                    pauseTimer();
+                    alert("⏱️ Fim do tempo de jogo!");
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetTimer(minutes) {
+            pauseTimer();
+            secondsLeft = minutes * 60;
+            updateTimerDisplay();
+        }
+
+        function addExtraTime(minutes) {
+            secondsLeft += minutes * 60;
+            updateTimerDisplay();
+        }
+
+        // --- MENSALIDADES ---
+        // --- CONTROLE DE MENSALIDADES ---
+        function renderizarMeses() {
+            const container = document.getElementById('filtro-meses');
+            if (!container) return;
+
+            container.innerHTML = meses.map(m => `
+                <button class="${m === mesSelecionado ? 'active' : ''}" onclick="selecionarMes('${m}')">${m}</button>
+            `).join('');
+        }
+
+        function selecionarMes(m) {
+            mesSelecionado = m;
+            renderizarMeses();
+            renderizarMensalidades();
+        }
+
+        const formMensalidade = document.getElementById('form-mensalidade');
+        if (formMensalidade) {
+            formMensalidade.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nome = document.getElementById('mensal-buscar-jogador').value;
+                const valorInput = document.getElementById('mensal-valor');
+                const valor = valorInput ? (parseFloat(valorInput.value) || 0) : 0;
+                const status = document.getElementById('mensal-status').value;
+
+                if (!appData.mensalidades) appData.mensalidades = [];
+
+                const idx = appData.mensalidades.findIndex(m => m.nome === nome && m.mes === mesSelecionado);
+                if (idx >= 0) {
+                    appData.mensalidades[idx] = { nome, mes: mesSelecionado, valor, status };
+                } else {
+                    appData.mensalidades.push({ nome, mes: mesSelecionado, valor, status });
+                }
+
+                salvarDadosLocal();
+                renderizarMensalidades();
+                document.getElementById('mensal-buscar-jogador').value = '';
+            });
+        }
+
+        function renderizarMensalidades() {
+            const tbody = document.querySelector('#tabela-mensalidades tbody');
+            if (!tbody) return;
+
+            if (!appData.mensalidades) appData.mensalidades = [];
+
+            const filtrados = appData.mensalidades.filter(m => m.mes === mesSelecionado);
+
+            if (filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; opacity:0.6;">Nenhum registro para este mês.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtrados.map(m => `
+                <tr>
+                  <td><strong>${m.nome}</strong></td>
+                  <td>${m.mes}</td>
+                  <td>R$ ${m.valor.toFixed(2)}</td>
+                  <td><span class="status-badge ${m.status === 'Pago' ? 'paid' : 'pending'}">${m.status}</span></td>
+                  <td><button style="background:#d32f2f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="removerMensalidade('${m.nome}', '${m.mes}')">Excluir</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function removerMensalidade(nome, mes) {
+            appData.mensalidades = appData.mensalidades.filter(m => !(m.nome === nome && m.mes === mes));
+            salvarDadosLocal();
+            renderizarMensalidades();
+        }
+
+        // --- ARMAZENAMENTO & GITHUB ---
+        function salvarDadosLocal() {
+            localStorage.setItem('futapp_data', JSON.stringify(appData));
+        }
+
+        function carregarDadosLocal() {
+            const data = localStorage.getItem('futapp_data');
+            if (data) appData = JSON.parse(data);
+        }
+
+        function exportarJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "dados_baba.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importarJSON(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = (e) => {
+                try {
+                    appData = JSON.parse(e.target.result);
+                    salvarDadosLocal();
+                    location.reload();
+                } catch (err) {
+                    alert('Erro ao ler arquivo JSON.');
+                }
+            };
+            fileReader.readAsText(event.target.files[0]);
+        }
+
+        function limparBabaDoDia() {
+            const data = document.getElementById('baba-data').value;
+            if (confirm('Tem certeza que deseja zerar a escalação desta data? Todos os jogadores voltarão para a lista de seleção.')) {
+                appData.babas[data] = [];
+                salvarDadosLocal();
+                carregarPresencasBaba();
+            }
+        }
+    </script>
+</body>
+
+</html>

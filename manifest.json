@@ -1,0 +1,8 @@
+{
+  "name": "BABA DO SÍTIO LOPES",
+  "short_name": "Baba Sitio Lopes",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a"
+}
