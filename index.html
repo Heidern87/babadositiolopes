@@ -472,6 +472,7 @@
             renderizarAgenda();
             carregarPresencasBaba();
             renderizarMensalidades();
+            atualizarDisplay();
         };
 
         function switchTab(tabId) {
@@ -756,43 +757,6 @@
             }, 1000);
         }
 
-        // --- CRONÔMETRO DE PARTIDA ---
-        function updateTimerDisplay() {
-            const m = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
-            const s = (secondsLeft % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${m}: ${s}`;
-        }
-
-        function startTimer() {
-            if (timerInterval) return;
-            timerInterval = setInterval(() => {
-                if (secondsLeft > 0) {
-                    secondsLeft--;
-                    updateTimerDisplay();
-                } else {
-                    pauseTimer();
-                    alert("⏱️ Fim do tempo de jogo!");
-                }
-            }, 1000);
-        }
-
-        function pauseTimer() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-
-        function resetTimer(minutes) {
-            pauseTimer();
-            secondsLeft = minutes * 60;
-            updateTimerDisplay();
-        }
-
-        function addExtraTime(minutes) {
-            secondsLeft += minutes * 60;
-            updateTimerDisplay();
-        }
-
-        // --- MENSALIDADES ---
         // --- CONTROLE DE MENSALIDADES ---
         function renderizarMeses() {
             const container = document.getElementById('filtro-meses');
